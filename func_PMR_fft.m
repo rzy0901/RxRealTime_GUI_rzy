@@ -1,4 +1,4 @@
-function func_PMR_fft(dat_path,pic_path)
+function func_PMR_fft(dat_path,pic_path,pic_resized_path)
 close all;
 f_s = 10e6;
 CIT = 0.1;
@@ -99,4 +99,6 @@ axis off
 set(gca,'xtick',[],'ytick',[],'xcolor','w','ycolor','w')
 set(gca,'looseInset',[0 0 0 0]);
 saveas(gcf,pic_path)
+frame = getframe(gcf);
+imwrite(imresize(frame.cdata,[60,80]),pic_resized_path);
 end
