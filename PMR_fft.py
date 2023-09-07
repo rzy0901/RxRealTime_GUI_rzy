@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from mpl_toolkits.mplot3d import Axes3D
-
+from PIL import Image
 
 
 ### Read files
@@ -11,13 +11,13 @@ from mpl_toolkits.mplot3d import Axes3D
 # fname = foldname + filename
 # data = np.fromfile(fname,dtype = '<f', count = -1,).reshape(2,-1,order = "F")
 
-def PMR_fft(data, noAxes = False):
+def PMR_fft(data, noAxes = True, imshow = False):
     fs = 10e6
     CIT = 0.1
     N_slide = 10
     T_slide = CIT / N_slide
     #数据转化为两行
-    print(data.shape,type(data))
+    # print(data.shape,type(data))
     # data_complex = data[0,:] + 1j*data[1,:]
     # data_sample = data.reshape(-1,2,order = "F")
     data_sample = data
@@ -34,7 +34,7 @@ def PMR_fft(data, noAxes = False):
     plt.subplot(212)
     plt.plot(data_ref[:2184*2].real)
     plt.title('ref signal')
-    print(data_ref.shape)
+    # print(data_ref.shape)
     # print('data shape:',data_tar.shape,'data type:',type(data_tar[1,1]))z
 
     total_duration = round(len(data_sample[1,:]) / fs)
@@ -81,9 +81,14 @@ def PMR_fft(data, noAxes = False):
         ax.set_axis_off()
         ax.margins(0, 0)
     plt.savefig("./temp_python.jpg", bbox_inches='tight', pad_inches=0, transparent=True)
-    plt.show(block=False)
-    input("Press Enter to continue...")
-    plt.close('all')
+    if imshow:
+        plt.show(block=False)
+        input("Press Enter to continue...")
+        plt.close('all')
+    img = Image.open('./temp_python.jpg').convert('RGB')
+    img = img.resize((80,60))
+    img.save('./temp_python_resize.jpg')
+    return img
 
    
 
