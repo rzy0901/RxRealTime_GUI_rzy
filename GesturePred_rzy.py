@@ -98,7 +98,6 @@ def main():
     # img = PMR_fft(data_sample, noAxes=True,imshow=True)
     # Matlab version for higher recognition accuracy
     eng = matlab.engine.start_matlab()
-    eng.eval("set(0, 'DefaultFigureVisible', 'on')", nargout=0)
     print("Matlab engine start")
     img = PMR_fft_matlabEngine(eng,data_sample,imshow=True)
     # Convet to tensor
