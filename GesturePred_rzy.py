@@ -81,15 +81,16 @@ def PMR_fft_matlab(data, imshow=False):
     return img
 
 def PMR_fft_matlabEngine(eng, data, imshow=False):
-    # Start the MATLAB Engine
+    if imshow:
+        eng.eval("set(0, 'DefaultFigureVisible', 'on')", nargout=0)
     data_save(data, './temp.dat')
     try:
-        eng.func_PMR_fft('./temp.dat', './temp_matlab.jpg', './temp_resize_matlab.jpg')
+        eng.func_PMR_fft('./temp.dat', './temp_matlab.jpg', './temp_resize_matlab.jpg',nargout=0)
     except Exception as e:
         print(f"Error: {e}")
     img = Image.open('./temp_resize_matlab.jpg').convert('RGB')
-    if imshow:
-        Image.open('./temp_matlab.jpg').convert('RGB').show(title="Spectrogram")
+    # if imshow:
+    #     Image.open('./temp_matlab.jpg').convert('RGB').show(title="Spectrogram")
     return img
 
 def main():
@@ -105,6 +106,7 @@ def main():
     model = ModelInit()
     predicted = GesPre(img, model)
     print("Class", int(predicted))
+    input('Press any key to continue.')
     eng.quit()
 
 if __name__ == '__main__':

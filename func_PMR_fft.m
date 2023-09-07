@@ -99,6 +99,7 @@ axis off
 set(gca,'xtick',[],'ytick',[],'xcolor','w','ycolor','w')
 set(gca,'looseInset',[0 0 0 0]);
 saveas(gcf,pic_path)
+figure(2);
 frame = getframe(gcf);
 imwrite(imresize(frame.cdata,[60,80]),pic_resized_path);
 end
