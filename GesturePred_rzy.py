@@ -41,7 +41,6 @@ class fc_part(nn.Module):
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-
 def ModelInit():
     model = resnet18(pretrained=True).to(device)
     model.fc = fc_part().to(device)
@@ -69,7 +68,7 @@ def PMR_fft_matlab(data, imshow=False):
     # generate temp_matlab.jpg and temp_resize_matlab.jpg by matlab
     # return numpy img
     data_save(data, './temp.dat')
-    matlab_command = "matlab -nodisplay -nosplash -r \"func_PMR_fft('./temp.dat','./temp_matlab.jpg','./temp_resize_matlab.jpg'); exit;\""
+    matlab_command = "matlab -nodisplay -nosplash -r \"func_PMR_fft('./temp.dat','./temp_matlab.jpg','./temp_resize_matlab.jpg',false); exit;\""
     print(matlab_command)
     try:
         subprocess.run(matlab_command, shell=True, check=True)
@@ -81,16 +80,13 @@ def PMR_fft_matlab(data, imshow=False):
     return img
 
 def PMR_fft_matlabEngine(eng, data, imshow=False):
-    if imshow:
-        eng.eval("set(0, 'DefaultFigureVisible', 'on')", nargout=0)
     data_save(data, './temp.dat')
+    print('temp.dat saved!')
     try:
-        eng.func_PMR_fft('./temp.dat', './temp_matlab.jpg', './temp_resize_matlab.jpg',nargout=0)
+        eng.func_PMR_fft('./temp.dat', './temp_matlab.jpg', './temp_resize_matlab.jpg',imshow,nargout=0)
     except Exception as e:
         print(f"Error: {e}")
     img = Image.open('./temp_resize_matlab.jpg').convert('RGB')
-    # if imshow:
-    #     Image.open('./temp_matlab.jpg').convert('RGB').show(title="Spectrogram")
     return img
 
 def main():
@@ -100,6 +96,7 @@ def main():
     # Matlab version for higher recognition accuracy
     eng = matlab.engine.start_matlab()
     print("Matlab engine start")
+    # img = PMR_fft_matlab(data_sample,imshow=True)
     img = PMR_fft_matlabEngine(eng,data_sample,imshow=True)
     # Convet to tensor
     img = testTransform(img)

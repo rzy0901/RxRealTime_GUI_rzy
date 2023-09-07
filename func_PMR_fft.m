@@ -1,4 +1,4 @@
-function func_PMR_fft(dat_path,pic_path,pic_resized_path)
+function func_PMR_fft(dat_path,pic_path,pic_resized_path,imshow)
 close all;
 f_s = 10e6;
 CIT = 0.1;
@@ -75,6 +75,9 @@ fig1 = figure();
 plot_A_DT = abs(A_TD');
 plot_A_DT = mag2db(plot_A_DT/max(max(plot_A_DT)));
 h = imagesc(array_start_time,array_Doppler_frequency,plot_A_DT);
+if imshow == false
+    set(gcf,'Visible','off')
+end
 xlim([array_start_time(1),array_start_time(end)]);
 ylim([array_Doppler_frequency(1),array_Doppler_frequency(end)]);
 % set(gcf,'unit','centimeters','position',[5 3 30 15]);
@@ -98,8 +101,10 @@ caxis([thres_A_TRD,0]);
 axis off
 set(gca,'xtick',[],'ytick',[],'xcolor','w','ycolor','w')
 set(gca,'looseInset',[0 0 0 0]);
+if imshow == false
+    set(gcf,'Visible','off')
+end
 saveas(gcf,pic_path)
-figure(2);
 frame = getframe(gcf);
 imwrite(imresize(frame.cdata,[60,80]),pic_resized_path);
 end
