@@ -9,12 +9,13 @@ import torch.nn.functional as nf
 import torchvision.transforms as transforms
 from torchvision.models.resnet import resnet18
 import matlab.engine
-
+from torch.utils.data import Dataset
+from torch.utils.data import DataLoader
 
 # For model 1 (pure simu-to-real inference),
 # run https://github.com/Jcq242818/mediapipe_spectrogram_classification/blob/change_model_order/jcq_train.py for detailed normMean and normStd.
-normMean = [0.026820642701525108, 0.047705834694988805, 0.5362284994553294]
-normStd = [0.08753696827923, 0.13767478809434114, 0.0832230032303204]
+normMean = [0.04035673338779959, 0.06492115332243965, 0.5282050517429131]
+normStd = [0.12570609443609027, 0.1726390070527584, 0.08701469187852846]
 normTransform = transforms.Normalize(normMean, normStd)
 testTransform = transforms.Compose([
     transforms.ToTensor(),
@@ -41,11 +42,14 @@ class fc_part(nn.Module):
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+
+
 def ModelInit():
     model = resnet18(pretrained=True).to(device)
+    # model = model.to(device)
     model.fc = fc_part().to(device)
-    model_Path = './resnet18_model.pth'
-    model.load_state_dict(torch.load(model_Path))
+    model_Path = './best_resnet18_model.pth'
+    model.load_state_dict(torch.load(model_Path,map_location='cpu'))
     return model
 
 
@@ -53,6 +57,7 @@ def GesPre(img: torch.Tensor, model):
     print(img.shape)
     img = img.unsqueeze(0)
     with torch.no_grad():
+        model.eval()
         inputs = img.to(device)
         outputs = model.forward(inputs)
         _, predicted = torch.max(outputs, axis=1)
@@ -83,21 +88,30 @@ def PMR_fft_matlabEngine(eng, data, imshow=False):
     data_save(data, './temp.dat')
     print('temp.dat saved!')
     try:
-        eng.func_PMR_fft('./temp.dat', './temp_matlab.jpg', './temp_resize_matlab.jpg',imshow,nargout=0)
+        eng.func_PMR_fft('./temp.dat', './temp_matlab.jpg',
+                         './temp_resize_matlab.jpg', imshow, nargout=0)
     except Exception as e:
         print(f"Error: {e}")
     img = Image.open('./temp_resize_matlab.jpg').convert('RGB')
     return img
 
+def dat2Npy(data_path):
+    data = np.fromfile(data_path, dtype='<f', count=-1,).reshape(2, -1, order="F")
+    data_complex = data[0, :] + 1j*data[1, :]
+    data_sample = data_complex.reshape(-1, 2, order="F")
+    data_sample = np.transpose(data_sample)
+    return data_sample
+
 def main():
-    data_sample = np.load('./data1.npy')
+    data_sample = dat2Npy("I:\\实验\\data_0112\\data261.dat")
+    # data_sample = np.load('./data1.npy')
     # # Python version for faster speed
     # img = PMR_fft(data_sample, noAxes=True,imshow=True)
     # Matlab version for higher recognition accuracy
     eng = matlab.engine.start_matlab()
     print("Matlab engine start")
     # img = PMR_fft_matlab(data_sample,imshow=True)
-    img = PMR_fft_matlabEngine(eng,data_sample,imshow=True)
+    img = PMR_fft_matlabEngine(eng, data_sample, imshow=True)
     # Convet to tensor
     img = testTransform(img)
     model = ModelInit()
